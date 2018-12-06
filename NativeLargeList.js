@@ -234,6 +234,10 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     { useNativeDriver: true, listener: this._onScroll }
   );
 
+  setScrollEnabled(enabled) {
+    this._scrollView.current.getNode().setNativeProps({ scrollEnabled: enabled });
+  }
+
   scrollTo(offset: Offset, animated: boolean = true): Promise<void> {
     if (!this._scrollView.current)
       return Promise.reject("LargeList has not been initialized yet!");
