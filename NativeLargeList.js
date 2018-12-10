@@ -238,6 +238,10 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     this._scrollView.current.getNode().setNativeProps({ scrollEnabled: enabled });
   }
 
+  scrollToEnd(animated = true) {
+    return this._scrollView.current.getNode().scrollToEnd({ animated });
+  }
+
   scrollTo(offset: Offset, animated: boolean = true): Promise<void> {
     if (!this._scrollView.current)
       return Promise.reject("LargeList has not been initialized yet!");
@@ -260,8 +264,8 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     indexPath: IndexPath,
     animated: boolean = true
   ): Promise<void> {
-    const { data, heightForSection, heightForIndexPath } = this.props;
-    let ht = 0;
+    const { data, heightForSection, heightForIndexPath, heightForHeader = 0 } = this.props;
+    let ht = heightForHeader;
     for (let s = 0; s < data.length && s <= indexPath.section; ++s) {
       if (indexPath.section === s && indexPath.row === -1) break;
       ht += heightForSection(s);
