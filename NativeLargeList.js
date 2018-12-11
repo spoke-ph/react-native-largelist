@@ -23,8 +23,6 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
   _shouldUpdateContent = true;
   _lastTick = 0;
   _contentOffsetY = 0;
-  _headerLayout;
-  _footerLayout;
 
   static defaultProps = {
     heightForSection: () => 0,
@@ -34,10 +32,25 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     updateTimeInterval: 150
   };
 
+  state = {
+    headerHeight: 0,
+    footerHeight: 0
+  };
+
   constructor(props) {
     super(props);
     for (let i = 0; i < props.groupCount; ++i) {
       this._groupRefs.push(React.createRef());
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    // in case header/footer was conditionally rendered by containing component, reset height to 0
+    if (prevProps.renderHeader && !this.props.renderHeader) {
+      this.setState({ headerHeight: 0 });
+    }
+    if (prevProps.renderFooter && !this.props.renderFooter) {
+      this.setState({ footerHeight: 0 });
     }
   }
 
@@ -59,7 +72,7 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     let inputs = [];
     let outputs = [];
     let lastOffset = [];
-    let sumHeight = this._headerLayout ? this._headerLayout.height : 0;
+    let sumHeight = this.state.headerHeight;
     let currentGroupHeight = 0;
     for (let i = 0; i < groupCount; ++i) {
       inputs.push(i === 0 ? [Number.MIN_SAFE_INTEGER] : []);
@@ -118,7 +131,7 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     inputs.forEach(range => range.push(Number.MAX_SAFE_INTEGER));
     outputs.forEach(range => range.push(range[range.length - 1]));
     const scrollStyle = StyleSheet.flatten([styles.container, style]);
-    if (this._footerLayout) sumHeight += this._footerLayout.height;
+    sumHeight += this.state.footerHeight;
     return (
       <Animated.ScrollView
         scrollEventThrottle={1}
@@ -184,13 +197,13 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
   }
 
   _onHeaderLayout = ({ nativeEvent: { layout: layout } }) => {
-    this._headerLayout = layout;
-    if (this._footerLayout) this.forceUpdate();
+    // rely on setState to reconcile onLayout events gracefully instead of forcing an update
+    this.setState({ headerHeight: layout.height });
   };
 
   _onFooterLayout = ({ nativeEvent: { layout: layout } }) => {
-    this._footerLayout = layout;
-    if (this._headerLayout) this.forceUpdate();
+    // rely on setState to reconcile onLayout events gracefully instead of forcing an update
+    this.setState({ footerHeight: layout.height });
   };
 
   _onScrollEnd = () => {
@@ -264,8 +277,8 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     indexPath: IndexPath,
     animated: boolean = true
   ): Promise<void> {
-    const { data, heightForSection, heightForIndexPath, heightForHeader = 0 } = this.props;
-    let ht = heightForHeader;
+    const { data, heightForSection, heightForIndexPath } = this.props;
+    let ht = this.state.headerHeight;
     for (let s = 0; s < data.length && s <= indexPath.section; ++s) {
       if (indexPath.section === s && indexPath.row === -1) break;
       ht += heightForSection(s);
