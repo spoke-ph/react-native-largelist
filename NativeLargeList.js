@@ -248,11 +248,11 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
   );
 
   setScrollEnabled(enabled) {
-    this._scrollView.current.getNode().setNativeProps({ scrollEnabled: enabled });
+    this._scrollView.current.setNativeProps({ scrollEnabled: enabled });
   }
 
   scrollToEnd(animated = true) {
-    return this._scrollView.current.getNode().scrollToEnd({ animated });
+    return this._scrollView.current.scrollToEnd({ animated });
   }
 
   scrollTo(offset: Offset, animated: boolean = true): Promise<void> {
@@ -264,7 +264,7 @@ export class NativeLargeList extends React.PureComponent<LargeListPropType> {
     );
     idx(() => this._sectionContainer.current.updateOffset(offset.y));
     return new Promise((r, j) => {
-      this._scrollView.current.getNode().scrollTo({ ...offset, animated });
+      this._scrollView.current.scrollTo({ ...offset, animated });
 
       setTimeout(() => {
         r();
